@@ -1,0 +1,310 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Futuristic Custom Animations */
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(100px) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out forwards;
+}
+
+@keyframes neon-glow {
+  0%, 100% { 
+    box-shadow: 0 0 5px #00f5ff, 0 0 10px #00f5ff, 0 0 15px #00f5ff;
+  }
+  50% { 
+    box-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff, 0 0 30px #00f5ff;
+  }
+}
+
+@keyframes scan-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes glitch {
+  0%, 100% { transform: translate(0); }
+  10% { transform: translate(-2px, -1px); }
+  20% { transform: translate(2px, 1px); }
+  30% { transform: translate(-1px, 2px); }
+  40% { transform: translate(1px, -2px); }
+  50% { transform: translate(-2px, 1px); }
+  60% { transform: translate(2px, -1px); }
+  70% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, 2px); }
+  90% { transform: translate(-2px, -1px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+@keyframes holographic {
+  0% { 
+    background: linear-gradient(45deg, #00f5ff, #ff00f5, #f5ff00);
+    filter: hue-rotate(0deg);
+  }
+  100% { 
+    background: linear-gradient(45deg, #00f5ff, #ff00f5, #f5ff00);
+    filter: hue-rotate(360deg);
+  }
+}
+
+.neon-glow {
+  animation: neon-glow 2s ease-in-out infinite alternate;
+}
+
+.scan-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.6), transparent);
+  animation: scan-line 2s ease-in-out;
+  pointer-events: none;
+}
+
+.glitch-text {
+  animation: glitch 0.3s ease-in-out infinite;
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+.holographic-btn {
+  position: relative;
+  background: linear-gradient(45deg, #00f5ff, #ff00f5, #f5ff00);
+  background-size: 200% 200%;
+  animation: holographic 3s ease infinite;
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Gradient Text Effect */
+.gradient-text {
+  background: linear-gradient(45deg, #00f5ff, #ff00f5, #f5ff00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* SavvyIndians Brand Effects */
+
+/* 1. Neon Particle Field - Hero Section */
+@keyframes particle-float {
+  0%, 100% { 
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.8;
+  }
+  25% { 
+    transform: translateY(-20px) translateX(10px) scale(1.1);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateY(-10px) translateX(-15px) scale(0.9);
+    opacity: 0.6;
+  }
+  75% { 
+    transform: translateY(-30px) translateX(5px) scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff, 0 0 30px #00f5ff;
+    filter: brightness(1);
+  }
+  50% { 
+    box-shadow: 0 0 20px #ff00f5, 0 0 40px #ff00f5, 0 0 60px #ff00f5;
+    filter: brightness(1.5);
+  }
+}
+
+.neon-particle-field {
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-particle-field::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(0, 245, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(255, 0, 245, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(245, 255, 0, 0.1) 0%, transparent 50%);
+  animation: particle-float 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 2. Aurora Gradient Waves - About/Services Sections */
+@keyframes aurora-wave {
+  0% { 
+    transform: translateX(-100%) translateY(0px) scale(1);
+    opacity: 0.3;
+  }
+  50% { 
+    transform: translateX(0%) translateY(-10px) scale(1.1);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: translateX(100%) translateY(0px) scale(1);
+    opacity: 0.3;
+  }
+}
+
+@keyframes aurora-shift {
+  0%, 100% { 
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  50% { 
+    background-position: 100% 50%;
+    filter: hue-rotate(180deg);
+  }
+}
+
+.aurora-gradient-waves {
+  position: relative;
+  overflow: hidden;
+}
+
+.aurora-gradient-waves::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 245, 255, 0.1) 0%,
+    rgba(255, 0, 245, 0.05) 25%,
+    rgba(245, 255, 0, 0.1) 50%,
+    rgba(0, 245, 255, 0.05) 75%,
+    rgba(255, 0, 245, 0.1) 100%
+  );
+  background-size: 400% 400%;
+  animation: aurora-shift 12s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.aurora-gradient-waves::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00f5ff, transparent);
+  animation: aurora-wave 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 3. Neon Grid Floor - Contact/Footer */
+@keyframes grid-pulse {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: perspective(1000px) rotateX(75deg) scale(1);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: perspective(1000px) rotateX(75deg) scale(1.05);
+  }
+}
+
+@keyframes grid-lines {
+  0% { 
+    background-position: 0 0, 0 0;
+  }
+  100% { 
+    background-position: 40px 40px, 40px 40px;
+  }
+}
+
+.neon-grid-floor {
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-grid-floor::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(0, 245, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 245, 255, 0.2) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: grid-pulse 4s ease-in-out infinite, grid-lines 8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+  transform: perspective(1000px) rotateX(75deg);
+  transform-origin: center bottom;
+}
+
+.neon-grid-floor::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 245, 255, 0.1) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
