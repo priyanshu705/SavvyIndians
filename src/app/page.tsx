@@ -1,8 +1,11 @@
 ﻿'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import Image from 'next/image';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Sphere, MeshDistortMaterial, Float } from '@react-three/drei';
+import { useInView } from 'react-intersection-observer';
 
 
 // YouTube Video Player Component with PiP on Scroll
@@ -222,6 +225,274 @@ function GlitchText({ children, className }: { children: React.ReactNode; classN
     <span className={`${className} ${isGlitching ? 'glitch-text' : ''}`}>
       {children}
     </span>
+  );
+}
+
+// 3D Floating Shapes Component
+function FloatingShape({ position, color }: { position: [number, number, number]; color: string }) {
+  const meshRef = useRef<any>(null);
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x += 0.005;
+      meshRef.current.rotation.y += 0.005;
+      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime) * 0.3;
+    }
+  });
+
+  return (
+    <Float speed={2} rotationIntensity={1} floatIntensity={2}>
+      <Sphere ref={meshRef} args={[1, 32, 32]} position={position}>
+        <MeshDistortMaterial color={color} attach="material" distort={0.4} speed={2} roughness={0.2} />
+      </Sphere>
+    </Float>
+  );
+}
+
+function AnimatedShapes3D() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
+
+  // Disable 3D on mobile for performance
+  if (isMobile) return null;
+
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+        <Suspense fallback={null}>
+          <ambientLight intensity={0.5} />
+          <pointLight position={[10, 10, 10]} />
+          <FloatingShape position={[-2, 0, 0]} color="#00f5ff" />
+          <FloatingShape position={[2, 0, 0]} color="#ff00f5" />
+          <FloatingShape position={[0, -1, -1]} color="#f5ff00" />
+        </Suspense>
+      </Canvas>
+    </div>
+  );
+}
+
+// Cursor Trail Effect
+function CursorTrail() {
+  const [particles, setParticles] = useState<{ x: number; y: number; id: number }[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
+
+    let particleId = 0;
+    const handleMouseMove = (e: MouseEvent) => {
+      const newParticle = { x: e.clientX, y: e.clientY, id: particleId++ };
+      setParticles(prev => [...prev.slice(-20), newParticle]);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isMobile]);
+
+  // Auto-cleanup particles
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setParticles(prev => prev.slice(1));
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (isMobile) return null;
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-40">
+      {particles.map((particle, index) => (
+        <motion.div
+          key={particle.id}
+          className="absolute w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-400"
+          style={{
+            left: particle.x,
+            top: particle.y,
+            transform: 'translate(-50%, -50%)',
+          }}
+          initial={{ opacity: 1, scale: 1 }}
+          animate={{ opacity: 0, scale: 0 }}
+          transition={{ duration: 0.6 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Scroll Progress Indicator
+function ScrollProgress() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
+  return (
+    <motion.div
+      className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 origin-left z-50"
+      style={{ scaleX }}
+    />
+  );
+}
+
+// Animated Number Counter
+function AnimatedCounter({ target, duration = 2 }: { target: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (inView && !hasAnimated) {
+      setHasAnimated(true);
+      let start = 0;
+      const increment = target / (duration * 60); // 60fps
+      const timer = setInterval(() => {
+        start += increment;
+        if (start >= target) {
+          setCount(target);
+          clearInterval(timer);
+        } else {
+          setCount(Math.floor(start));
+        }
+      }, 1000 / 60);
+
+      return () => clearInterval(timer);
+    }
+  }, [inView, target, duration, hasAnimated]);
+
+  return <span ref={ref}>{count}</span>;
+}
+
+// Typing Animation Effect
+function TypingAnimation({ text, className }: { text: string; className?: string }) {
+  const [displayText, setDisplayText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 100);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [currentIndex, text]);
+
+  return (
+    <span className={className}>
+      {displayText}
+      <span className="animate-pulse">|</span>
+    </span>
+  );
+}
+
+// Loading Screen Component
+function LoadingScreen() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Show for 2 seconds
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isLoading) return null;
+
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black z-[9999] flex items-center justify-center"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 0 }}
+      transition={{ delay: 1.8, duration: 0.5 }}
+      onAnimationComplete={() => setIsLoading(false)}
+    >
+      <div className="text-center">
+        <motion.div
+          className="text-6xl md:text-8xl font-bold mb-8"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            SavvyIndians
+          </span>
+        </motion.div>
+
+        {/* Loading Animation */}
+        <motion.div
+          className="flex justify-center space-x-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          {[0, 1, 2].map((index) => (
+            <motion.div
+              key={index}
+              className="w-4 h-4 bg-cyan-400 rounded-full"
+              animate={{
+                y: [0, -20, 0],
+                opacity: [1, 0.5, 1]
+              }}
+              transition={{
+                duration: 0.6,
+                repeat: Infinity,
+                delay: index * 0.2
+              }}
+            />
+          ))}
+        </motion.div>
+
+        <motion.p
+          className="text-gray-400 mt-8 text-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          AI-Powered Creative Solutions
+        </motion.p>
+      </div>
+    </motion.div>
+  );
+}
+
+// Dark Mode Toggle Component
+function DarkModeToggle() {
+  const [isDark, setIsDark] = useState(true); // Default to dark
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    document.documentElement.classList.toggle('light-mode');
+  };
+
+  return (
+    <motion.button
+      onClick={toggleTheme}
+      className="fixed top-20 right-6 z-50 w-14 h-14 glassmorphism rounded-full flex items-center justify-center text-cyan-400 hover:text-white transition-colors neon-glow"
+      whileHover={{ scale: 1.1, rotate: 180 }}
+      whileTap={{ scale: 0.9 }}
+      title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+    >
+      {isDark ? (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ) : (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      )}
+    </motion.button>
   );
 }
 
@@ -541,6 +812,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
+      {/* Loading Screen */}
+      <LoadingScreen />
+
+      {/* Dark Mode Toggle */}
+      <DarkModeToggle />
+
+      {/* Scroll Progress Indicator */}
+      <ScrollProgress />
+
+      {/* Cursor Trail Effect */}
+      <CursorTrail />
+
       {/* Animated Neon Particles Background */}
       {/* Modern Animated Background */}
       <ModernBackground />
@@ -585,8 +868,11 @@ export default function Home() {
 
       {/* Cinematic Hero Section */}
       <section id="home" className="bg-black relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        {/* 3D Floating Elements in Background */}
+        <AnimatedShapes3D />
+
         <motion.div
-          className="text-center max-w-6xl mx-auto"
+          className="text-center max-w-6xl mx-auto relative z-10"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
@@ -597,9 +883,9 @@ export default function Home() {
             animate={{ scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <GlitchText className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(0,245,255,0.5)]">
-              AI-Powered Creative Solutions
-            </GlitchText>
+            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(0,245,255,0.5)]">
+              <TypingAnimation text="AI-Powered Creative Solutions" />
+            </span>
           </motion.h1>
 
           <motion.p
@@ -828,7 +1114,17 @@ export default function Home() {
                   <div className="absolute inset-0 scan-line"></div>
                 )}
 
-                <div className="text-5xl mb-4">{service.icon}</div>
+                <motion.div
+                  className="text-5xl mb-4"
+                  animate={hoveredCard === index ? {
+                    y: [0, -10, 0],
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                  } : {}}
+                  transition={{ duration: 0.6, repeat: hoveredCard === index ? Infinity : 0 }}
+                >
+                  {service.icon}
+                </motion.div>
                 <h3 className="text-xl font-bold mb-4 text-cyan-400">{service.title}</h3>
                 <p className="text-gray-300 mb-6 text-sm leading-relaxed">{service.description}</p>
 
@@ -1149,10 +1445,10 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             {[
-              { number: "50+", label: "Happy Clients" },
-              { number: "99%", label: "Success Rate" },
-              { number: "150%", label: "Avg Growth" },
-              { number: "24/7", label: "Support" }
+              { number: 50, label: "Happy Clients", suffix: "+" },
+              { number: 99, label: "Success Rate", suffix: "%" },
+              { number: 150, label: "Avg Growth", suffix: "%" },
+              { number: 24, label: "Support", suffix: "/7" }
             ].map((stat, index) => (
               <motion.div
                 key={index}
@@ -1160,7 +1456,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="text-2xl md:text-3xl font-bold gradient-text mb-1">
-                  {stat.number}
+                  <AnimatedCounter target={stat.number} />{stat.suffix}
                 </div>
                 <div className="text-gray-400 text-sm">{stat.label}</div>
               </motion.div>
