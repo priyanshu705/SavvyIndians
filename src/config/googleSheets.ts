@@ -1,18 +1,18 @@
 // Configuration for Google Sheets Integration
 export const GOOGLE_SHEETS_CONFIG = {
   // Replace this with your actual Google Apps Script Web App URL
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxqUBDC114gDJWcstGhiotBVZTaP5051wy76yfRn0GHRYVdUZuLekMe1HW_Q7oIeqru/exec',
-  
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyvZTKBZR_9a5YiGdykuXzhIsoFWzhveOTNwFGvSQ47y36jXZXG7De8liZQrugAVNdiwg/exec',
+
   // Enable/disable Google Sheets integration
   ENABLED: true, // Set to true after setup
-  
+
   // Fallback options
   FALLBACK_EMAIL: 'swapnilkumar2028@gmail.com',
-  
+
   // Form configuration
   FORMS: {
     MASTERCLASS: 'Join Our Masterclasses',
-    SERVICES: 'Get Service Details', 
+    SERVICES: 'Get Service Details',
     JOURNEY: 'Start Your AI Journey',
     NEWSLETTER: 'Subscribe to Newsletter'
   }
