@@ -67,17 +67,26 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
     return () => observer.disconnect();
   }, [videoStarted]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleScroll = () => {
-      if (!videoStarted || !containerRef.current) return;
+      if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
-      const isVisible = rect.top < window.innerHeight * 0.7 && rect.bottom > window.innerHeight * 0.3;
+      // Check if video is visible in viewport
+      const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+      const isPartiallyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
 
-      // More precise PiP logic
-      if (!isVisible && isInView && !isPiPActive) {
+      // Activate PiP when video has started and is scrolled out of view
+      if (videoStarted && !isPartiallyVisible && isVisible) {
         setIsPiPActive(true);
-      } else if (isVisible && isPiPActive) {
+      }
+      // Deactivate PiP when video is fully visible in viewport
+      else if (isPartiallyVisible) {
+        setIsPiPActive(false);
+      }
+      // Deactivate PiP when video is completely out of view
+      else if (!isVisible) {
         setIsPiPActive(false);
       }
     };
@@ -96,8 +105,9 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
     })();
 
     window.addEventListener('scroll', throttledScroll, { passive: true });
+    handleScroll(); // Check initial position
     return () => window.removeEventListener('scroll', throttledScroll);
-  }, [videoStarted, isPiPActive, isInView]);
+  }, [videoStarted]);
 
   // Debug logging
   useEffect(() => {
@@ -111,7 +121,7 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
   }, []);
 
   // Enhanced embed URL with aggressive autoplay
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0&showinfo=0&enablejsapi=1&origin=${origin}&start=0&playsinline=1`;
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&loop=1&playlist=${videoId}&controls=1&modestbranding=1&rel=0&showinfo=0&enablejsapi=1&origin=${origin}&start=0&playsinline=1`;
 
   return (
     <>
@@ -147,39 +157,8 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
 
         {/* Status Indicators */}
         <div className="absolute top-4 right-4 flex space-x-2">
-          {videoStarted && (
-            <motion.div
-              className="bg-green-500/80 px-2 py-1 rounded text-white text-xs backdrop-blur-sm"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              ▶ Auto Playing
-            </motion.div>
-          )}
-          {isPiPActive && (
-            <motion.div
-              className="bg-blue-500/80 px-2 py-1 rounded text-white text-xs backdrop-blur-sm"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              📺 PiP Mode
-            </motion.div>
-          )}
-        </div>
 
-        {/* Auto-play Status */}
-        {videoStarted && (
-          <motion.div
-            className="absolute bottom-4 left-4 bg-cyan-500/20 backdrop-blur-sm px-3 py-2 rounded-lg text-cyan-400 text-xs border border-cyan-500/30"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            🎬 Auto-Playing | {isPiPActive ? '📺 PiP Active' : '👁️ In View'}
-          </motion.div>
-        )}
+        </div>
       </div>
 
       {/* Picture-in-Picture Floating Video */}
@@ -189,7 +168,7 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
           animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
           exit={{ opacity: 0, scale: 0.5 }}
           className="fixed bottom-6 right-6 w-80 h-48 rounded-xl overflow-hidden shadow-2xl border-2 border-cyan-500/50 neon-glow bg-black backdrop-blur-sm"
-          style={{ zIndex: 9999 }}
+          style={{ zIndex: 99999, position: 'fixed' }}
         >
           <iframe
             src={embedUrl}
@@ -207,12 +186,8 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
           >
             ✕
           </motion.button>
-          <div className="absolute top-2 left-2 bg-cyan-500/80 px-2 py-1 rounded text-white text-xs z-10 backdrop-blur-sm">
-            📺 PiP Mode
-          </div>
-          <div className="absolute bottom-2 left-2 bg-black/70 px-2 py-1 rounded text-cyan-400 text-xs z-10">
-            Scroll to return to main view
-          </div>
+
+
         </motion.div>
       )}
     </>
