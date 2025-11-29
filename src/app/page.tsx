@@ -1,11 +1,12 @@
 ﻿'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import Image from 'next/image';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, MeshDistortMaterial, Float } from '@react-three/drei';
+import { Sphere, MeshDistortMaterial, Float } from '@react-three/drei';
 import { useInView } from 'react-intersection-observer';
+import * as THREE from 'three';
 
 
 // YouTube Video Player Component with PiP on Scroll
@@ -70,7 +71,6 @@ function YouTubeVideo({ videoId }: { videoId: string }) {
     return () => observer.disconnect();
   }, [videoStarted]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleScroll = () => {
       if (!containerRef.current) return;
@@ -230,7 +230,7 @@ function GlitchText({ children, className }: { children: React.ReactNode; classN
 
 // 3D Floating Shapes Component
 function FloatingShape({ position, color }: { position: [number, number, number]; color: string }) {
-  const meshRef = useRef<any>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (meshRef.current) {
